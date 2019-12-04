@@ -1,10 +1,10 @@
-from flask import flash
+from flask import flash, redirect
 from flask_login import current_user, login_user
 from flask_dance.contrib.facebook import make_facebook_blueprint
 from flask_dance.consumer import oauth_authorized, oauth_error
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from sqlalchemy.orm.exc import NoResultFound
-from .models import db, User, OAuth
+from app.models import db, User, OAuth, Token
 
 
 blueprint = make_facebook_blueprint(
@@ -41,7 +41,7 @@ def facebook_logged_in(blueprint, token):
 
     else:
         # Create a new local user account for this user
-        user = User(name=info["name"])
+        user = User(firstname=info["name"])
         # Associate the new local user account with the OAuth token
         oauth.user = user
         # Save and commit our database models
@@ -52,8 +52,14 @@ def facebook_logged_in(blueprint, token):
         flash("Successfully signed in.")
 
     # Disable Flask-Dance's default behavior for saving the OAuth token
-    return False
+    token_query = Token.query.filter_by(user_id=current_user.id)
+    try:
+        token = token_query.one()
+    except NoResultFound:
+        token = Token()
+        token = token.create_token(current_user.id)
 
+    return redirect("https://localhost:3000/home?api_key={}".format(token.uuid))
 
 # notify on OAuth provider error
 @oauth_error.connect_via(blueprint)
