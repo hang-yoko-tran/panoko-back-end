@@ -21,6 +21,9 @@ CORS(app)
 from controllers.user import user_blueprint
 app.register_blueprint(user_blueprint, url_prefix='/user')
 
+from controllers.post import post_blueprint
+app.register_blueprint(post_blueprint, url_prefix='/post')
+
 @app.route("/logout")
 @login_required
 def logout():

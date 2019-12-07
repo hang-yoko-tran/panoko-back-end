@@ -21,6 +21,15 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+    def get_json(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "password": self.password
+        }
+
 class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String(256), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
@@ -38,6 +47,35 @@ class Token(db.Model):
         db.session.add(token)
         db.session.commit()
         return token
+
+# note
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.String, nullable=False)
+    image_url = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(
+        db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
+    view_count = db.Column(db.Integer, default=0)
+
+    def get_json(self):
+        return {
+            "title": self.title,
+            "body": self.body,
+            "image_url": self.image_url,
+            "view_count": self.view_count,
+            "author": User.query.get(self.user_id).get_json(),
+            "created_at": self.created_at.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+        }
+
+likes = db.Table('likes',
+db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+db.Column('post_id', db.Integer, db.ForeignKey('posts.id'), primary_key=True)
+)
+# note
 
 # setup login manager
 login_manager = LoginManager()
