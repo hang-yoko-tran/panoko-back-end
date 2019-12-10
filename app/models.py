@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -61,20 +61,38 @@ class Post(db.Model):
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
     view_count = db.Column(db.Integer, default=0)
 
-    def get_json(self):
+    def get_json(self, id=None):
+        if not current_user.is_authenticated:
+            return {
+                "id": self.id,
+                "title": self.title,
+                "body": self.body,
+                "image_url": self.image_url,
+                "view_count": self.view_count,
+                "author": User.query.get(self.user_id).get_json(),
+                "created_at": self.created_at.strftime("%d-%b-%Y"),
+                "isLiked": False
+                # "created_at": self.created_at.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+            }
         return {
+            "id": self.id,
             "title": self.title,
             "body": self.body,
             "image_url": self.image_url,
             "view_count": self.view_count,
             "author": User.query.get(self.user_id).get_json(),
-            "created_at": self.created_at.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+            "created_at": self.created_at.strftime("%d-%b-%Y"),
+            "isLiked": bool(Like.query.filter_by(user_id=current_user.id).filter_by(post_id=self.id).first())
+            # "created_at": self.created_at.strftime("%d-%b-%Y (%H:%M:%S.%f)")
         }
 
-likes = db.Table('likes',
-db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-db.Column('post_id', db.Integer, db.ForeignKey('posts.id'), primary_key=True)
-)
+
+class Like(db.Model):
+    __tablename__ = 'likes'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
 # note
 
 # setup login manager
