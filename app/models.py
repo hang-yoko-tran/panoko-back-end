@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     firstname = db.Column(db.String(256))
     lastname = db.Column(db.String(256))
     password = db.Column(db.String(256))
+    posts = db.relationship("Comment", backref="user", lazy=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -60,12 +61,13 @@ class Post(db.Model):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
     view_count = db.Column(db.Integer, default=0)
-
+    comments = db.relationship("Comment", backref="post", lazy=True)
     def get_json(self, id=None):
         if not current_user.is_authenticated:
             return {
                 "id": self.id,
                 "title": self.title,
+                "comments": [ comment.get_json() for comment in self.comments ],
                 "body": self.body,
                 "image_url": self.image_url,
                 "view_count": self.view_count,
@@ -78,6 +80,7 @@ class Post(db.Model):
             "id": self.id,
             "title": self.title,
             "body": self.body,
+            "comments": [ comment.get_json() for comment in self.comments ],
             "image_url": self.image_url,
             "view_count": self.view_count,
             "author": User.query.get(self.user_id).get_json(),
@@ -98,11 +101,20 @@ class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
-    post_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'),nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(
-        db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
+
+    def get_json(self):
+        return {
+            "id": self.id,
+            "body": self.body,
+            "user_id": self.user_id,
+            "post_id": self.post_id,
+            "created_at": self.created_at.strftime("%d-%b-%Y"),
+            "user": self.user.get_json()
+        }
 
 
 # note
