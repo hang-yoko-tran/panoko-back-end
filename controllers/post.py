@@ -50,8 +50,26 @@ def add_like(id):
         db.session.commit()
         return jsonify({"status": "KO"})
 
+
+# @app.route('/posts/<id>/comments', methods=['POST', 'GET'])
+# def create_comment(id):
+#     if request.method == 'POST':
+
+#         comment = Comment(user_id=current_user.id, 
+#                     post_id=id,
+#                     body=request.form['body'],)
+#         db.session.add(comment)
+#         db.session.commit()
+#     return jsonify()
+
+
+
+
 # @app.route('/post/<id>/comment', methods=["GET", "POST"])
 # def ThisIsAReallyGoodMethodNameUKnow(id):
 #     if request.method == "POST":
 #         data = request.get_json()
 #         return jsonify()
+
+
+
