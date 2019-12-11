@@ -76,7 +76,7 @@ def send_email(token, email, name):
                              data={"from": "Hang Yoko <hang.yoko.tran@gmail.com>",
                                    "to": [email],
                                    "subject": "Reset Password",
-                                   "text": f"Go to {app.config["CLIENT_URL"]}/new-password/{token}"})
+                                   "text": f"Go to {app.config['CLIENT_URL']}/new-password/{token}"})
 
     print(response)
 
