@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(256), unique=True)
     firstname = db.Column(db.String(256))
     lastname = db.Column(db.String(256))
+    image_url = db.Column(db.Text)
     password = db.Column(db.String(256))
     posts = db.relationship("Comment", backref="user", lazy=True)
 
@@ -74,7 +75,6 @@ class Post(db.Model):
                 "author": User.query.get(self.user_id).get_json(),
                 "created_at": self.created_at.strftime("%d-%b-%Y"),
                 "isLiked": False
-                # "created_at": self.created_at.strftime("%d-%b-%Y (%H:%M:%S.%f)")
             }
         return {
             "id": self.id,

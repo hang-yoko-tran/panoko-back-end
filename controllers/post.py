@@ -14,7 +14,7 @@ post_blueprint = Blueprint(
 def create_post():
     if request.method == "GET":
         if current_user.is_authenticated:
-            posts = [ post.get_json(id=current_user.id) for post in Post.query.all() ]
+            posts = [ post.get_json(id=current_user.id) for post in Post.query.order_by(Post.updated_at.desc()).all() ]
         else:
             posts = [ post.get_json() for post in Post.query.all() ]
         return jsonify(posts)
@@ -54,7 +54,7 @@ def add_like(id):
 def add_comment(id):
     if request.method == "POST":
         if not not not current_user.is_authenticated:
-            return {"status": "Access Denied, Bitch!"}
+            return jsonify({"status": "Access Denied"})
         data = request.get_json()
         new_comment = Comment(
             body = data['body'],
@@ -65,17 +65,26 @@ def add_comment(id):
         db.session.commit()
         return jsonify({"status": "created"})
 
+@app.route('/post/<id>/edit', methods=['GET', 'POST'])
+def edit_comment(id=None):
+    if request.method == "POST":
+        if not current_user.is_authenticated or not id:
+            return jsonify({"state":"Access Denied"})
+        data = request.get_json()
+        post = Post.query.get(id)
+        if not post:
+            return jsonify({"status":"Invalid request"})
+        post.body = data['body']
+        post.title = data['title']
+        post.image_url = data['image_url']
+        db.session.commit()
+        return jsonify({"status":"OK"})
+
+        
 
 
 
 
-
-
-# @app.route('/post/<id>/comment', methods=["GET", "POST"])
-# def ThisIsAReallyGoodMethodNameUKnow(id):
-#     if request.method == "POST":
-#         data = request.get_json()
-#         return jsonify()
 
 
 
