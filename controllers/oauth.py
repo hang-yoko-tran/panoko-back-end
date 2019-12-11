@@ -5,6 +5,7 @@ from flask_dance.consumer import oauth_authorized, oauth_error
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from sqlalchemy.orm.exc import NoResultFound
 from app.models import db, User, OAuth, Token
+import os
 
 
 blueprint = make_facebook_blueprint(
@@ -59,7 +60,7 @@ def facebook_logged_in(blueprint, token):
         token = Token()
         token = token.create_token(current_user.id)
 
-    return redirect("https://localhost:3000/home?api_key={}".format(token.uuid))
+    return redirect(os.environ.get("CLIENT_URL") + f"/home?api_key={token.uuid}")
 
 # notify on OAuth provider error
 @oauth_error.connect_via(blueprint)

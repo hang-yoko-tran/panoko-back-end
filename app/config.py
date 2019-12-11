@@ -9,3 +9,4 @@ class Config(object):
     FACEBOOK_OAUTH_CLIENT_ID = os.environ.get("FACEBOOK_OAUTH_CLIENT_ID")
     FACEBOOK_OAUTH_CLIENT_SECRET = os.environ.get("FACEBOOK_OAUTH_CLIENT_SECRET")
     EMAIL_API=os.environ.get("EMAIL_API")
+    CLIENT_URL=os.environ.get("CLIENT_URL")
