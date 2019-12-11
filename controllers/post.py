@@ -66,7 +66,7 @@ def add_comment(id):
         return jsonify({"status": "created"})
 
 @app.route('/post/<id>/edit', methods=['GET', 'POST'])
-def edit_comment(id=None):
+def edit_post(id=None):
     if request.method == "POST":
         if not current_user.is_authenticated or not id:
             return jsonify({"state":"Access Denied"})
@@ -79,6 +79,44 @@ def edit_comment(id=None):
         post.image_url = data['image_url']
         db.session.commit()
         return jsonify({"status":"OK"})
+
+
+@app.route('/post/<id>/delete', methods=['GET', 'POST'])
+def delete_post(id=None):
+    if request.method == "POST":
+        post = Post.query.filter_by(id=request.get_json()['id']).first()
+        if post:
+            comments = Comment.query.filter_by(post_id = id).all()
+            for comment in comments:
+                db.session.delete(comment)
+
+            likes = Like.query.filter_by(post_id = id).all()
+            for like in likes:
+                db.session.delete(like)
+
+            db.session.commit()
+            db.session.delete(post)
+            db.session.commit()
+            return jsonify(success=True)
+        if not post:
+            return jsonify(success=False,status='post is not exist')
+
+
+# @app.route('/post/<id>/edit', methods=['GET', 'POST'])
+# def edit_comment(id=None):
+#     if request.method == "POST":
+#         if not current_user.is_authenticated or not id:
+#             return jsonify({"state":"Access Denied"})
+#         data = request.get_json()
+#         comment = Comment.query.get(id)
+#         if not post:
+#             return jsonify({"status":"Invalid request"})
+#         comment.body = data['body']
+#         db.session.commit()
+#         return jsonify({"status":"OK"})
+
+
+
 
         
 
